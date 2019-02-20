@@ -69,7 +69,7 @@ $(function () {
                 <li class="nav-item"><a class="nav-link" href="{% url 'ServerCheck' %}">Server Check</a></li>
                 <li class="nav-item _otree-updates"></li>
 
-                {% if request.user.is_authenticated|default:False %}
+                {% if (request.user.is_authenticated and request.user.is_superuser)|default:False %}
                     <li><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
                 {% endif %}
             </ul>

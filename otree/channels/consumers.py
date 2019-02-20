@@ -466,7 +466,7 @@ class ExportData(OTreeJsonWebsocketConsumer):
         # authenticate
         # maybe it should be is_superuser or something else more specific
         # but this is to be consistent with the rest of Django's login
-        if settings.AUTH_LEVEL and not self.message.user.is_authenticated:
+        if settings.AUTH_LEVEL and not (self.message.user.is_authenticated and self.message.user.is_superuser):
             logger.warning(
                 'rejected access to data export through non-authenticated '
                 'websocket'
