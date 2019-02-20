@@ -8,7 +8,8 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic.base import RedirectView
 from django.conf import settings
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from otree import common_internal
 from django.http import HttpResponse
 
@@ -69,6 +70,21 @@ def url_patterns_from_game_module(module_name, name_in_url):
     return view_urls
 
 
+def admin_login_required(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
+    """
+    Decorator for views that checks that the sso user is logged in, redirecting
+    to the log-in page if necessary.
+    """
+    actual_decorator = user_passes_test(
+        lambda u: u.is_authenticated and u.is_superuser,
+        login_url=login_url,
+        redirect_field_name=redirect_field_name
+    )
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
+
+
 def url_patterns_from_module(module_name):
     """automatically generates URLs for all Views in the module,
     So that you don't need to enumerate them all in urlpatterns.
@@ -98,7 +114,7 @@ def url_patterns_from_module(module_name):
         if unrestricted:
             as_view = ViewCls.as_view()
         else:
-            as_view = login_required(ViewCls.as_view())
+            as_view = admin_login_required(ViewCls.as_view())
 
         url_pattern = ViewCls.url_pattern
         if callable(url_pattern):
@@ -127,7 +143,7 @@ def extensions_export_urlpatterns():
 
     for ViewCls in view_classes:
         if settings.AUTH_LEVEL in {'DEMO', 'STUDY'}:
-            as_view = login_required(ViewCls.as_view())
+            as_view = admin_login_required(ViewCls.as_view())
         else:
             as_view = ViewCls.as_view()
         view_urls.append(urls.url(ViewCls.url_pattern, as_view, name=ViewCls.url_name))
